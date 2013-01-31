@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module>
+<ModulePrefs
+  title="はてなスペースフォロワーズ"
+  title_url="http://space.hatena.ne.jp/"
+  author="HigeDice"
+  author_link="http://d.hatena.ne.jp/higedice/"
+  author_aboutme="I am a programer, a network engineer and an administrator of servers and PCs. I love German board games."
+  author_email="higedice@banjoyugi.net"
+  author_affiliation="banjoyugi.net"
+  author_location="Tokyo, Japan"
+  description="はてなスペースのフォオロワーを表示します。"
+  screenshot="http://lh6.googleusercontent.com/-uR9-krfDK9g/UQnWYcrHMZI/AAAAAAAAANg/o_F8iYehKxc/s280/hatena-space-followers-gadget-big.png"
+  thumbnail="http://lh4.googleusercontent.com/-xTNCCboUQtU/UQnWYXWL6qI/AAAAAAAAANc/VkrAKJK8KtI/s280/hatena-space-followers-gadget-small.png"
+  width="320"
+  height="380"
+  scrolling="true"
+  singleton="false">
+  <Locale lang="ja" country="jp" />
+  <Require feature="settitle"/>
+  <Require feature="dynamic-height"/>
+</ModulePrefs>
+<UserPref name="spaceId" display_name="スペースID or URL" required="True" default_value="14217943783080819483" />
+<Content type="html"><![CDATA[
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<style type="text/css">
+
+	h1 {
+		font-size: 1em;
+		text-align: center;
+		color: black;
+	}
+
+	h1 a:visited {
+		color: black;
+	}
+
+	#space-description {
+		font-size: 0.9em;
+	}
+
+	#followersNum {
+		font-size: 0.8em;
+		color: gray;
+	}
+
+	.profile-icon {
+		float: left;
+		display: inline-block;
+	}
+
+	.profile-icon a {
+		display: block;
+		height: 1.5em;
+		width: 1.5em;
+		background-size: 1.5em;
+		margin: 3px;
+	}
+
+	#footer, #hatena-space-link {
+		clear: both;
+		font-size: 0.7em;
+		text-align: right;
+	}
+
+
+</style>
+<!--[if IE]>
+<style type="text/css">
+
+
+</style>
+<![endif]-->
+
+<script type="text/javascript">
+
+		var $SPACE = {
+			BASEDOMAIN: "http://space.hatena.ne.jp/"
+		};
+
+    google.setOnLoadCallback(initialize);
+
+
+		function initialize() {
+			var d = document;
+			var opt = getOptions();
+
+			getFollowers(opt.spaceId,
+					function(res) {
+						var usersList = "", title = "";
+						usersList = (res.text.match(/<div class="profile-icon">.+?<\/div>/g) || ["_スペース名_"]).join(" ");
+						d.getElementById("space-users").innerHTML = usersList.replace(/<a href="\//g, "<a target=\"_blank\" href=\"" + $SPACE.BASEDOMAIN);
+
+						title = (res.text.match(/<h1><a.+?>(.+)<\/a><\/h1>/i) || [" "])[0].replace(/<a href="\//g, "<a target=\"_blank\" href=\"" + $SPACE.BASEDOMAIN);
+						d.getElementById("space-name").innerHTML = title;
+						gadgets.window.setTitle(title.replace(/<.+?>/g, ""));
+
+						d.getElementById("followersNum").innerHTML = (res.text.match(/<h3><strong>[0-9]+<\/strong> Followers<\/h3>/i) || ["_x フォロワー_"])[0];
+
+						setTimeout(gadgets.window.adjustHeight, 6000);
+					});
+	}
+
+
+		function getOptions() {
+			var ret = {},
+				prefs = new gadgets.Prefs();
+
+			ret.spaceId = prefs.getString("spaceId");
+			ret.spaceId = (ret.spaceId.match(/^http:\/\/space.hatena.ne.jp\/~\/([0-9]+)/) || ret.spaceId.match(/^([0-9]+)$/) || [0, "14217943783080819483"])[1];
+
+			return ret;
+		}
+
+
+	function getFollowers(spaceId, callback) {
+		var params = {},
+				url = $SPACE.BASEDOMAIN + "~/" + spaceId + "/follower";
+
+  		params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.TEXT;
+  		gadgets.io.makeRequest(url, callback, params);
+  	}
+
+
+
+</script>
+
+
+<div id="debug_div"></div>
+
+
+<div id="header">
+	<div id="space-image"></div>
+	<div id="space-name"></div>
+<p id="hatena-space-link">- <a href="http://space.hatena.ne.jp/" target="_blank">はてなスペース</a></p>
+</div>
+
+
+<div id="main">
+	<p id="followersNum"></p>
+	<div id="space-users"></div>
+</div>
+
+
+
+<div id="footer">
+	<p>Gadget by <a href="http://d.hatena.ne.jp/higedice/" target="_blank">HigeDice</p>
+</div>
+]]></Content>
+</Module>
+
