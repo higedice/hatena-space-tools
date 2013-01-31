@@ -75,19 +75,44 @@
 <script type="text/javascript">
 
 		var $SPACE = {
-			BASEDOMAIN: "http://space.hatena.ne.jp/"
+			BASEDOMAIN: "http://space.hatena.ne.jp/",
+			DEFAULT_SPACE_ID: "14217943783080819483"
 		};
 
-    google.setOnLoadCallback(initialize);
+
+		$SPACE.getOptions = function () {
+			var ret = {},
+				prefs = new gadgets.Prefs();
+
+			ret.spaceId = prefs.getString("spaceId");
+			ret.spaceId = (ret.spaceId.match(/^http:\/\/space.hatena.ne.jp\/~\/([0-9]+)/) || ret.spaceId.match(/^([0-9]+)$/) || [0, $SPACE.DEFAULT_SPACE_ID])[1];
+
+			return ret;
+		}
 
 
-		function initialize() {
-			var d = document;
-			var opt = getOptions();
+		$SPACE.getFollowers = function (spaceId, callback) {
+			var params = {},
+					url = $SPACE.BASEDOMAIN + "~/" + spaceId + "/follower";
 
-			getFollowers(opt.spaceId,
+  			params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.TEXT;
+  			gadgets.io.makeRequest(url, callback, params);
+  	}
+
+
+		$SPACE.initialize = function () {
+			var d = document,
+				opt = $SPACE.getOptions();
+
+			$SPACE.getFollowers(opt.spaceId,
 					function(res) {
 						var usersList = "", title = "";
+
+						if (res.errors.length > 0) {
+							d.getElementById("space-users").appendChild(d.createTextNode(res.errors[0]));
+							return -1;
+						}
+
 						usersList = (res.text.match(/<div class="profile-icon">.+?<\/div>/g) || ["_スペース名_"]).join(" ");
 						d.getElementById("space-users").innerHTML = usersList.replace(/<a href="\//g, "<a target=\"_blank\" href=\"" + $SPACE.BASEDOMAIN);
 
@@ -99,29 +124,10 @@
 
 						setTimeout(gadgets.window.adjustHeight, 6000);
 					});
-	}
-
-
-		function getOptions() {
-			var ret = {},
-				prefs = new gadgets.Prefs();
-
-			ret.spaceId = prefs.getString("spaceId");
-			ret.spaceId = (ret.spaceId.match(/^http:\/\/space.hatena.ne.jp\/~\/([0-9]+)/) || ret.spaceId.match(/^([0-9]+)$/) || [0, "14217943783080819483"])[1];
-
-			return ret;
 		}
 
 
-	function getFollowers(spaceId, callback) {
-		var params = {},
-				url = $SPACE.BASEDOMAIN + "~/" + spaceId + "/follower";
-
-  		params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.TEXT;
-  		gadgets.io.makeRequest(url, callback, params);
-  	}
-
-
+    google.setOnLoadCallback($SPACE.initialize);
 
 </script>
 
